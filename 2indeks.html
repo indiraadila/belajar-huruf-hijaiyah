@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Huruf Hijaiyah Interaktif</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e3a8a"/>
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/1e3a8a/ffffff?text=H">
+    <link rel="manifest" id="manifest-link">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lalezar&family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff;
+        }
+        .hijaiyah-char {
+            font-family: 'Lalezar', cursive;
+            line-height: 1;
+        }
+        /* Style untuk teks Arab */
+        .lang-ar {
+            font-family: 'Noto Sans Arabic', sans-serif;
+        }
+        .lang-ar .hijaiyah-char {
+            font-family: 'Lalezar', cursive;
+        }
+
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s;
+            border: 2px solid transparent;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .nav-btn, .action-btn, .quiz-option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-btn, .action-btn {
+            background-color: white;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+         .nav-btn {
+            border-radius: 50%;
+            width: 3.5rem;
+            height: 3.5rem;
+         }
+         .action-btn {
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+         }
+
+        .nav-btn:hover, .action-btn:hover {
+            background-color: #eff6ff;
+            transform: scale(1.1);
+        }
+
+        #detail-card.playing {
+            transform: scale(1.03);
+            border-color: #3b82f6;
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+        }
+        .quiz-option-btn.correct { background-color: #22c55e; color: white; transform: scale(1.05); }
+        .quiz-option-btn.wrong { background-color: #ef4444; color: white; }
+    </style>
+</head>
+<body class="bg-blue-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-7xl">
+
+        <!-- Halaman Utama -->
+        <div id="home-page">
+            <header class="text-center mb-8 relative">
+                <h1 id="app-title" class="text-4xl md:text-5xl font-bold text-blue-800 mb-2">Mari Belajar Huruf Hijaiyah</h1>
+                <p id="app-subtitle" class="text-lg text-gray-600">Klik huruf untuk melihat detail atau mulai kuis untuk menguji pengetahuanmu.</p>
+                <div class="absolute top-0 right-0 flex items-center gap-3">
+                     <!-- Language Switcher -->
+                    <div class="flex border border-blue-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <button id="lang-id-btn" class="px-3 py-1 text-sm font-semibold bg-blue-600 text-white">ID</button>
+                        <button id="lang-ar-btn" class="px-3 py-1 text-sm font-semibold bg-white text-blue-600">AR</button>
+                    </div>
+                    <button id="install-btn" class="action-btn hidden" aria-label="Instal Aplikasi">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </button>
+                </div>
+            </header>
+            <main id="hijaiyah-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+                <!-- Kartu huruf akan dimasukkan di sini oleh JavaScript -->
+            </main>
+            <div class="mt-10 flex justify-center">
+                <button id="start-quiz-btn" class="action-btn bg-blue-600 text-white font-semibold px-8 py-3 rounded-lg text-xl hover:bg-blue-700" aria-label="Mulai Kuis">
+                    Mulai Kuis
+                </button>
+            </div>
+        </div>
+
+        <!-- Halaman Detail Huruf (Tersembunyi secara default) -->
+        <div id="detail-page" class="hidden flex flex-col items-center justify-center min-h-[80vh]">
+            <div id="detail-card" class="card bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-md">
+                <div id="detail-char" class="hijaiyah-char text-blue-700" style="font-size: 12rem;"></div>
+                <div id="detail-name" class="text-4xl font-bold mt-4 text-gray-800"></div>
+            </div>
+            <div id="detail-nav" class="flex justify-between items-center w-full max-w-lg mt-8">
+                <button id="prev-btn" class="nav-btn" aria-label="Huruf Sebelumnya"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                <button id="home-btn" class="nav-btn" aria-label="Kembali ke Halaman Utama"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg></button>
+                <button id="next-btn" class="nav-btn" aria-label="Huruf Berikutnya"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
+            </div>
+        </div>
+        
+        <!-- Halaman Kuis (Tersembunyi secara default) -->
+        <div id="quiz-page" class="hidden">
+             <header class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 id="quiz-title" class="text-3xl font-bold text-blue-800">Kuis Hijaiyah</h2>
+                    <p id="question-counter" class="text-gray-600">Pertanyaan 1 dari 10</p>
+                </div>
+                <div id="score-label" class="text-2xl font-bold bg-white px-4 py-2 rounded-lg shadow">Skor: <span id="score">0</span></div>
+            </header>
+            <main id="quiz-content" class="text-center">
+                 <div id="quiz-char" class="hijaiyah-char text-blue-700" style="font-size: 10rem;"></div>
+                 <p id="quiz-question-text" class="text-xl text-gray-700 my-4">Apa nama huruf di atas?</p>
+                 <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg mx-auto">
+                     <!-- Pilihan jawaban akan dimasukkan di sini oleh JavaScript -->
+                 </div>
+                 <div id="quiz-feedback" class="mt-6 h-8">
+                     <!-- Feedback akan muncul di sini -->
+                 </div>
+                 <div id="quiz-navigation" class="mt-6 flex justify-center gap-4">
+                    <button id="quit-quiz-btn" class="action-btn bg-red-500 text-white font-semibold px-6 py-3 rounded-lg">Keluar</button>
+                    <button id="next-question-btn" class="action-btn bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hidden">Lanjut</button>
+                 </div>
+            </main>
+             <div id="quiz-result" class="hidden text-center p-8 bg-white rounded-lg shadow-xl max-w-md mx-auto">
+                <h2 id="quiz-result-title" class="text-3xl font-bold text-blue-800 mb-4">Kuis Selesai!</h2>
+                <p id="quiz-result-subtitle" class="text-xl text-gray-700 mb-2">Skor Akhir Anda:</p>
+                <p id="final-score" class="text-6xl font-bold text-green-500 mb-6">0</p>
+                <div class="flex justify-center gap-4">
+                    <button id="restart-quiz-btn" class="action-btn bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg">Ulangi Kuis</button>
+                    <button id="home-from-quiz-btn" class="action-btn bg-gray-200 text-gray-800 font-semibold px-6 py-3 rounded-lg">Kembali</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-10 text-gray-500 text-sm">
+            <p id="footer-text">Dibuat dengan ❤️ untuk pembelajaran.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // -- Data & Terjemahan --
+            let currentLanguage = 'id';
+            const hijaiyahLetters = [
+                { char: 'ا', name: 'Alif', name_ar: 'ألف' }, { char: 'ب', name: 'Ba', name_ar: 'باء' }, { char: 'ت', name: 'Ta', name_ar: 'تاء' }, { char: 'ث', name: 'Tsa', name_ar: 'ثاء' },
+                { char: 'ج', name: 'Jim', name_ar: 'جيم' }, { char: 'ح', name: 'Ha', name_ar: 'حاء' }, { char: 'خ', name: 'Kho', name_ar: 'خاء' }, { char: 'د', name: 'Dal', name_ar: 'دال' },
+                { char: 'ذ', name: 'Dzal', name_ar: 'ذال' }, { char: 'ر', name: 'Ro', name_ar: 'راء' }, { char: 'ز', name: 'Zai', name_ar: 'زاي' }, { char: 'س', name: 'Sin', name_ar: 'سين' },
+                { char: 'ش', name: 'Syin', name_ar: 'شين' }, { char: 'ص', name: 'Shod', name_ar: 'صاد' }, { char: 'ض', name: 'Dhod', name_ar: 'ضاد' }, { char: 'ط', name: 'Tho', name_ar: 'طاء' },
+                { char: 'ظ', name: 'Zho', name_ar: 'ظاء' }, { char: 'ع', name: 'Ain', name_ar: 'عين' }, { char: 'غ', name: 'Ghoin', name_ar: 'غين' }, { char: 'ف', name: 'Fa', name_ar: 'فاء' },
+                { char: 'ق', name: 'Qof', name_ar: 'قاف' }, { char: 'ك', name: 'Kaf', name_ar: 'كاف' }, { char: 'ل', name: 'Lam', name_ar: 'لام' }, { char: 'م', name: 'Mim', name_ar: 'ميم' },
+                { char: 'ن', name: 'Nun', name_ar: 'نون' }, { char: 'و', name: 'Wawu', name_ar: 'واو' }, { char: 'ه', name: 'Ha', name_ar: 'هاء' }, { char: 'ء', name: 'Hamzah', name_ar: 'همزة' },
+                { char: 'ي', name: 'Ya', name_ar: 'ياء' }
+            ];
+            const translations = {
+                id: {
+                    title: "Mari Belajar Huruf Hijaiyah",
+                    subtitle: "Klik huruf untuk melihat detail atau mulai kuis untuk menguji pengetahuanmu.",
+                    startQuiz: "Mulai Kuis",
+                    quizTitle: "Kuis Hijaiyah",
+                    questionCounter: (current, total) => `Pertanyaan ${current} dari ${total}`,
+                    scoreLabel: "Skor: ",
+                    quizQuestionText: "Apa nama huruf di atas?",
+                    quitQuiz: "Keluar",
+                    nextQuestion: "Lanjut",
+                    correctFeedback: "Benar!",
+                    wrongFeedback: (correctAnswer) => `Salah! Jawaban yang benar adalah ${correctAnswer}.`,
+                    quizResultTitle: "Kuis Selesai!",
+                    quizResultSubtitle: "Skor Akhir Anda:",
+                    restartQuiz: "Ulangi Kuis",
+                    backToHome: "Kembali",
+                    footerText: "Dibuat dengan ❤️ untuk pembelajaran."
+                },
+                ar: {
+                    title: "هيا نتعلم الحروف الهجائية",
+                    subtitle: "انقر على حرف لرؤية التفاصيل أو ابدأ الاختبار.",
+                    startQuiz: "ابدأ الاختبار",
+                    quizTitle: "اختبار الهجاء",
+                    questionCounter: (current, total) => `السؤال ${current} من ${total}`,
+                    scoreLabel: "النتيجة: ",
+                    quizQuestionText: "ما هو اسم الحرف أعلاه؟",
+                    quitQuiz: "خروج",
+                    nextQuestion: "التالي",
+                    correctFeedback: "صحيح!",
+                    wrongFeedback: (correctAnswer) => `خطأ! الإجابة الصحيحة هي ${correctAnswer}.`,
+                    quizResultTitle: "اكتمل الاختبار!",
+                    quizResultSubtitle: "نتيجتك النهائية:",
+                    restartQuiz: "أعد الاختبار",
+                    backToHome: "العودة",
+                    footerText: "صنع بـ ❤️ للتعلم."
+                }
+            };
+            
+            // -- Elemen Global --
+            const homePage = document.getElementById('home-page');
+            const detailPage = document.getElementById('detail-page');
+            const quizPage = document.getElementById('quiz-page');
+            const grid = document.getElementById('hijaiyah-grid');
+            
+            // -- Logika Bahasa --
+            const langIdBtn = document.getElementById('lang-id-btn');
+            const langArBtn = document.getElementById('lang-ar-btn');
+
+            function setLanguage(lang) {
+                currentLanguage = lang;
+                document.documentElement.lang = lang;
+                document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+                document.body.className = lang === 'ar' ? 'lang-ar bg-blue-50 text-gray-800' : 'bg-blue-50 text-gray-800';
+
+                langIdBtn.classList.toggle('bg-blue-600', lang === 'id');
+                langIdBtn.classList.toggle('text-white', lang === 'id');
+                langIdBtn.classList.toggle('bg-white', lang !== 'id');
+                langIdBtn.classList.toggle('text-blue-600', lang !== 'id');
+                
+                langArBtn.classList.toggle('bg-blue-600', lang === 'ar');
+                langArBtn.classList.toggle('text-white', lang === 'ar');
+                langArBtn.classList.toggle('bg-white', lang !== 'ar');
+                langArBtn.classList.toggle('text-blue-600', lang !== 'ar');
+
+                updateUIText();
+            }
+
+            function updateUIText() {
+                const t = translations[currentLanguage];
+                document.getElementById('app-title').textContent = t.title;
+                document.getElementById('app-subtitle').textContent = t.subtitle;
+                document.getElementById('start-quiz-btn').textContent = t.startQuiz;
+                document.getElementById('quiz-title').textContent = t.quizTitle;
+                document.getElementById('score-label').firstChild.textContent = t.scoreLabel;
+                document.getElementById('quiz-question-text').textContent = t.quizQuestionText;
+                document.getElementById('quit-quiz-btn').textContent = t.quitQuiz;
+                document.getElementById('next-question-btn').textContent = t.nextQuestion;
+                document.getElementById('quiz-result-title').textContent = t.quizResultTitle;
+                document.getElementById('quiz-result-subtitle').textContent = t.quizResultSubtitle;
+                document.getElementById('restart-quiz-btn').textContent = t.restartQuiz;
+                document.getElementById('home-from-quiz-btn').textContent = t.backToHome;
+                document.getElementById('footer-text').textContent = t.footerText;
+                renderHijaiyahGrid();
+            }
+
+            langIdBtn.addEventListener('click', () => setLanguage('id'));
+            langArBtn.addEventListener('click', () => setLanguage('ar'));
+
+            // --- Logika Halaman Utama ---
+            function renderHijaiyahGrid() {
+                grid.innerHTML = '';
+                hijaiyahLetters.forEach((letter, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card bg-white p-4 rounded-xl shadow-md cursor-pointer flex flex-col items-center justify-center text-center';
+                    const name = currentLanguage === 'id' ? letter.name : letter.name_ar;
+                    card.innerHTML = `<div class="hijaiyah-char text-5xl text-blue-700">${letter.char}</div><div class="text-xl font-semibold mt-2 text-gray-700">${name}</div>`;
+                    card.addEventListener('click', () => showDetailPage(index));
+                    grid.appendChild(card);
+                });
+            }
+            document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
+
+            // --- Logika Halaman Detail ---
+            const detailChar = document.getElementById('detail-char');
+            const detailName = document.getElementById('detail-name');
+            const detailCard = document.getElementById('detail-card');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const homeBtn = document.getElementById('home-btn');
+            let currentDetailIndex = 0;
+
+            function showDetailPage(index) {
+                currentDetailIndex = index;
+                const letter = hijaiyahLetters[currentDetailIndex];
+                detailChar.textContent = letter.char;
+                detailName.textContent = currentLanguage === 'id' ? letter.name : letter.name_ar;
+                homePage.classList.add('hidden');
+                quizPage.classList.add('hidden');
+                detailPage.classList.remove('hidden');
+                speak(letter.name); // Suara tetap Bahasa Indonesia
+            }
+            
+            setInterval(() => { if (window.speechSynthesis.speaking) { window.speechSynthesis.resume(); } }, 5000);
+
+            function speak(text) {
+                window.speechSynthesis.cancel();
+                if (!('speechSynthesis' in window)) { console.error("Browser tidak mendukung text-to-speech."); return; }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                utterance.onstart = () => detailCard.classList.add('playing');
+                utterance.onend = () => setTimeout(() => detailCard.classList.remove('playing'), 200);
+                utterance.onerror = (event) => console.error('Error pada fitur suara:', event);
+                setTimeout(() => window.speechSynthesis.speak(utterance), 100);
+            }
+
+            function showHomePage() {
+                detailPage.classList.add('hidden');
+                quizPage.classList.add('hidden');
+                homePage.classList.remove('hidden');
+            }
+            
+            prevBtn.addEventListener('click', () => showDetailPage((currentDetailIndex - 1 + hijaiyahLetters.length) % hijaiyahLetters.length));
+            nextBtn.addEventListener('click', () => showDetailPage((currentDetailIndex + 1) % hijaiyahLetters.length));
+            homeBtn.addEventListener('click', showHomePage);
+
+            // --- Logika Kuis ---
+            const quizContent = document.getElementById('quiz-content');
+            const quizResult = document.getElementById('quiz-result');
+            const questionCounter = document.getElementById('question-counter');
+            const scoreDisplay = document.getElementById('score');
+            const quizChar = document.getElementById('quiz-char');
+            const quizOptions = document.getElementById('quiz-options');
+            const quizFeedback = document.getElementById('quiz-feedback');
+            const nextQuestionBtn = document.getElementById('next-question-btn');
+            const quitQuizBtn = document.getElementById('quit-quiz-btn');
+            const homeFromQuizBtn = document.getElementById('home-from-quiz-btn');
+            const finalScore = document.getElementById('final-score');
+            
+            let quizQuestions = [];
+            let currentQuestionIndex = 0;
+            let score = 0;
+            const QUIZ_LENGTH = 10;
+
+            function startQuiz() {
+                homePage.classList.add('hidden');
+                detailPage.classList.add('hidden');
+                quizPage.classList.remove('hidden');
+                quizResult.classList.add('hidden');
+                quizContent.classList.remove('hidden');
+                currentQuestionIndex = 0;
+                score = 0;
+                scoreDisplay.textContent = score;
+                quizQuestions = [...hijaiyahLetters].sort(() => 0.5 - Math.random()).slice(0, QUIZ_LENGTH);
+                generateQuestion();
+            }
+
+            function generateQuestion() {
+                quizOptions.innerHTML = '';
+                quizFeedback.innerHTML = '';
+                nextQuestionBtn.classList.add('hidden');
+                questionCounter.textContent = translations[currentLanguage].questionCounter(currentQuestionIndex + 1, QUIZ_LENGTH);
+
+                const currentQuestion = quizQuestions[currentQuestionIndex];
+                quizChar.textContent = currentQuestion.char;
+                
+                const nameKey = currentLanguage === 'id' ? 'name' : 'name_ar';
+                const correctAnswer = currentQuestion[nameKey];
+                const wrongAnswers = hijaiyahLetters.filter(l => l[nameKey] !== correctAnswer).sort(() => 0.5 - Math.random()).slice(0, 3).map(l => l[nameKey]);
+                
+                const options = [correctAnswer, ...wrongAnswers].sort(() => 0.5 - Math.random());
+                
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.className = 'quiz-option-btn bg-white text-blue-700 font-semibold p-4 rounded-lg shadow hover:bg-blue-100 text-xl';
+                    button.addEventListener('click', () => checkAnswer(option, correctAnswer));
+                    quizOptions.appendChild(button);
+                });
+            }
+
+            function checkAnswer(selectedOption, correctAnswer) {
+                const buttons = quizOptions.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.disabled = true;
+                    if (button.textContent === correctAnswer) button.classList.add('correct');
+                });
+
+                if (selectedOption === correctAnswer) {
+                    score++;
+                    scoreDisplay.textContent = score;
+                    quizFeedback.innerHTML = `<p class="text-green-600 font-bold text-lg">${translations[currentLanguage].correctFeedback}</p>`;
+                } else {
+                    quizFeedback.innerHTML = `<p class="text-red-600 font-bold text-lg">${translations[currentLanguage].wrongFeedback(correctAnswer)}</p>`;
+                    buttons.forEach(button => { if (button.textContent === selectedOption) button.classList.add('wrong'); });
+                }
+                nextQuestionBtn.classList.remove('hidden');
+            }
+
+            function handleNextQuestion() {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < QUIZ_LENGTH) generateQuestion();
+                else showResults();
+            }
+            
+            function showResults() {
+                quizContent.classList.add('hidden');
+                quizResult.classList.remove('hidden');
+                finalScore.textContent = score;
+            }
+
+            quitQuizBtn.addEventListener('click', showHomePage);
+            nextQuestionBtn.addEventListener('click', handleNextQuestion);
+            document.getElementById('restart-quiz-btn').addEventListener('click', startQuiz);
+            homeFromQuizBtn.addEventListener('click', showHomePage);
+
+            // --- Logika PWA & Instalasi ---
+            const installBtn = document.getElementById('install-btn');
+            function setupPWA() {
+                // ... (Kode PWA tidak berubah)
+                 const manifestContent = {
+                    "name": "Belajar Huruf Hijaiyah", "short_name": "Hijaiyah", "start_url": ".", "display": "standalone",
+                    "background_color": "#f0f9ff", "theme_color": "#1e3a8a", "description": "Aplikasi interaktif untuk belajar huruf hijaiyah.",
+                    "icons": [{"src": "https://placehold.co/192x192/1e3a8a/ffffff?text=H", "sizes": "192x192", "type": "image/png"}, {"src": "https://placehold.co/512x512/1e3a8a/ffffff?text=Hijaiyah", "sizes": "512x512", "type": "image/png"}]
+                };
+                const blob = new Blob([JSON.stringify(manifestContent)], { type: 'application/json' });
+                document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(blob));
+
+                if ('serviceWorker' in navigator) {
+                    const swCode = `const CACHE_NAME='hijaiyah-cache-v1';self.addEventListener('install',(e)=>{e.waitUntil(caches.open(CACHE_NAME).then((c)=>c.addAll(['.','https://cdn.tailwindcss.com'])))_});self.addEventListener('fetch',(e)=>{e.respondWith(caches.match(e.request).then((r)=>r||fetch(e.request)))});`;
+                    navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' })))
+                        .then(() => console.log('Service Worker berhasil didaftarkan.')).catch(err => console.log('Pendaftaran Service Worker gagal:', err));
+                }
+
+                let deferredPrompt;
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault(); deferredPrompt = e; installBtn.classList.remove('hidden');
+                });
+                installBtn.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt = null;
+                        installBtn.classList.add('hidden');
+                    }
+                });
+                window.addEventListener('appinstalled', () => { deferredPrompt = null; installBtn.classList.add('hidden'); });
+            }
+
+            // Inisialisasi semuanya
+            setLanguage('id'); // Mulai dengan Bahasa Indonesia
+            setupPWA();
+        });
+    </script>
+</body>
+</html>
+
